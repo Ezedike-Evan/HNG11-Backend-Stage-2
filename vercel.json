@@ -4,9 +4,6 @@
         "src" : "server.js",
         "use" : "@vercel/node"
     }],
-  "hooks": {
-    "build": "prisma generate"
-  },
     "routes" : [{
         "src" : "/(.*)",
         "dest" : "/server.js"
