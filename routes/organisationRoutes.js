@@ -7,5 +7,6 @@ const router = express.Router()
 router.get('/',authMiddleware.authMiddleware , organisationController.getOrg)
 router.post('/',authMiddleware.authMiddleware , organisationController.postOrg)
 router.get('/:orgId',authMiddleware.authMiddleware , organisationController.getOrgId)
+router.post('/:orgId/users',authMiddleware.authMiddleware , organisationController.postOrg)
 
 module.exports = router

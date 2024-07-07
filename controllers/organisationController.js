@@ -78,8 +78,37 @@ const postOrg = async(req,res)=>{
     }
 }
 
+const postOrgUser = async(req,res)=>{
+    const { orgId } = req.params
+    const { userId } = req.body
+  
+    try {
+        await prisma.organisation.update({
+            where: { orgId },
+                data: { 
+                users: { 
+                    connect: { 
+                        userId 
+                    } 
+                } 
+            }
+        })
+        res.status(200).json({ 
+            status: 'success', 
+            message: 'User added to organisation successfully' 
+        })
+    } catch (error) {
+        res.status(400).json({ 
+            status: 'Bad Request', 
+            message: 'Client error', 
+            statusCode: 400 
+        })
+    }
+}
+
 module.exports = {
     getOrg,
     getOrgId,
-    postOrg
+    postOrg,
+    postOrgUser
 }
