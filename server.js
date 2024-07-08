@@ -17,8 +17,11 @@ app.use('/auth' , authRoutes)
 app.use('/api/users' , userRoutes)
 app.use('/api/organisations' , organisationRoutes)
 
-app.listen(PORT,()=>{
-    console.log(`server running on port ${PORT}`)
-})
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    })
+}
 
+module.exports = app
 // clybif81c0001npz084ysk46b

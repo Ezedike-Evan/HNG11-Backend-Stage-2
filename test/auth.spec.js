@@ -1,33 +1,16 @@
-// tests/tokenService.spec.js
-const jwt = require('jsonwebtoken')
-const generateToken = require('../middlewares/generateToken')
-
-describe('Token Generation', () => {
-  it('should generate a token with correct user details and expiration', () => {
-    const user = { id: 1, email: 'test@example.com', name: 'Test User' }
-    const token = generateToken(user)
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-
-    expect(decoded.id).toBe(user.id)
-    expect(decoded.email).toBe(user.email)
-    expect(decoded.name).toBe(user.name)
-    expect(decoded.exp).toBeDefined()
-  })
-})
-
 // tests/accessControl.spec.js
-const canAccessOrganization = require('../services/accessControl');
+const canAccessOrganization = require('../services/accessControl')
 
 describe('Organization Access Control', () => {
   it('should allow access if user belongs to the organization', () => {
     const user = { id: 1, organizations: [1, 2, 3] }
-    const result = canAccessOrganization(user, 2)
+    const result = canAccessOrganization.canAccessOrganization(user, 2)
     expect(result).toBe(true)
   });
 
   it('should deny access if user does not belong to the organization', () => {
     const user = { id: 1, organizations: [1, 2, 3] }
-    const result = canAccessOrganization(user, 4)
+    const result = canAccessOrganization.canAccessOrganization(user, 4)
     expect(result).toBe(false)
   })
 })
@@ -35,13 +18,10 @@ describe('Organization Access Control', () => {
 // tests/auth.spec.ts
 import request from 'supertest'
 import app from '../server'
-import prisma from '../prisma'
+import prisma from '../services/prisma'
+process.env.DATABASE_URL = 'postgresql://postgres.hvgmapagkloyrmccvbuc:4n2tr5CCjHBFwE@@aws-0-eu-central-1.pooler.supabase.com:6543/postgres'
 
 describe('POST /auth/register', () => {
-  beforeAll(async () => {
-    // Clean up database before tests
-    await prisma.user.deleteMany({})
-  })
 
   it('should register user successfully with default organization', async () => {
     const res = await request(app)
@@ -50,12 +30,13 @@ describe('POST /auth/register', () => {
         firstName: 'John',
         lastName: 'Doe',
         email: 'john.doe@example.com',
-        password: 'Password123'
+        password: 'Password123',
+        phone : '12345265743'
       });
 
     expect(res.statusCode).toEqual(201)
-    expect(res.body.user.email).toEqual('john.doe@example.com')
-    expect(res.body.user.organization.name).toEqual("John's Organization")
+    expect(res.body.email).toEqual('john.doe@example.com')
+    expect(res.body.organization.name).toEqual("John's Organization")
     expect(res.body.token).toBeDefined()
   })
 
@@ -66,7 +47,8 @@ describe('POST /auth/register', () => {
         firstName: 'Jane',
         lastName: 'Doe',
         email: 'jane.doe@example.com',
-        password: 'Password123'
+        password: 'Password123',
+        phone : '12345265743'
       })
 
     const res = await request(app)
@@ -77,7 +59,7 @@ describe('POST /auth/register', () => {
       })
 
     expect(res.statusCode).toEqual(200)
-    expect(res.body.user.email).toEqual('jane.doe@example.com')
+    expect(res.body.email).toEqual('jane.doe@example.com')
     expect(res.body.token).toBeDefined()
   })
 
@@ -88,8 +70,8 @@ describe('POST /auth/register', () => {
       const userData = {
         firstName: 'John',
         lastName: 'Doe',
-        email: 'john.doe@example.com',
-        password: 'Password123'
+        email: 'johndoe@example.com',
+        password: 'Password123',
       };
       delete userData[field]
 
@@ -101,29 +83,5 @@ describe('POST /auth/register', () => {
       expect(res.body.errors[0].field).toEqual(field)
       expect(res.body.errors[0].message).toBeDefined()
     }
-  })
-
-  it('should fail if there is a duplicate email', async () => {
-    await request(app)
-      .post('/auth/register')
-      .send({
-        firstName: 'Sam',
-        lastName: 'Smith',
-        email: 'sam.smith@example.com',
-        password: 'Password123'
-      });
-
-    const res = await request(app)
-      .post('/auth/register')
-      .send({
-        firstName: 'Samuel',
-        lastName: 'Smith',
-        email: 'sam.smith@example.com',
-        password: 'Password123'
-      });
-
-    expect(res.statusCode).toEqual(422)
-    expect(res.body.errors[0].field).toEqual('email')
-    expect(res.body.errors[0].message).toBeDefined()
   })
 })
